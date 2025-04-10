@@ -27,12 +27,12 @@ export async function generateStory(data: {
     mood: string;
     character: string;
   }): Promise<string> {
-    const response = await fetch('http://localhost:8000/generate-story', {
+    const response = await fetch('http://localhost:8000/generate-poem', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ ...data, format: 'poem' }), // ⬅ format이 "poem"
+      body: JSON.stringify(data), // format 제거해도 됨, 별도 엔드포인트니까
     });
   
     if (!response.ok) {
