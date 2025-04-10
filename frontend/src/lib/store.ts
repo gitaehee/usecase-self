@@ -1,50 +1,103 @@
 // src/lib/store.ts
 
+'use client';
+
 import { create } from 'zustand';
-interface StoryState {
+import { persist } from 'zustand/middleware';
+
+interface StoryStore {
   diary: string;
+  diaryByDate: { [date: string]: string }; // ✅ 날짜별 일기 저장
+
   mood: string;
   character: string;
   story: string;
+  poem: string;
+
   storyHistory: string[];
+  savedStories: string[];
+  poemHistory: string[];
+  savedPoems: string[];
+
   defaultMood: string;
   defaultCharacter: string;
-  savedStories: string[]; // ⭐ 저장된 동화
-  poem: string; // ✅ 시 저장 필드 추가
-  setStory: (data: { diary: string; mood: string; character: string }) => void;
-  setStoryText: (text: string) => void;
-  setDefaults: (data: { mood: string; character: string }) => void;
-  saveStory: (story: string) => void; // ⭐ 저장 함수
-  setPoem: (poem: string) => void; // ✅ 추가
+
+  setDiary: (text: string) => void;
+  setDiaryByDate: (date: string, text: string) => void;  // ✅ 추가
+  getDiaryByDate: (date: string) => string | undefined;  // ✅ 추가
+
+  setStory: (text: string) => void;
+  setPoem: (text: string) => void;
+  saveStory: () => void;
+  savePoem: () => void;
+  deleteSavedStory: (index: number) => void;
+  deleteSavedPoem: (index: number) => void;
+  setDefaults: (defaults: { mood: string; character: string }) => void;
 }
 
+export const useStoryStore = create<StoryStore>()(
+  persist(
+    (set, get) => ({
+      diary: '',
+      diaryByDate: {}, // ✅ 초기값
 
-export const useStoryStore = create<StoryState>((set, get) => ({
-  diary: '',
-  mood: 'happy',
-  character: '토끼',
-  poem: '', // ✅ 시 저장 필드 추가
-  story: '',
-  storyHistory: [],
-  savedStories: [], // ⭐
-  defaultMood: 'happy',
-  defaultCharacter: '토끼',
-  setPoem: (poem) => set({ poem }), // ✅ 추가
+      mood: '',
+      character: '',
+      story: '',
+      poem: '',
 
-  setStory: ({ diary, mood, character }) => set({ diary, mood, character }),
+      storyHistory: [],
+      savedStories: [],
+      poemHistory: [],
+      savedPoems: [],
 
-  setStoryText: (story) => {
-    const { storyHistory } = get();
-    set({ story, storyHistory: [story, ...storyHistory.slice(0, 4)] });
-  },
+      defaultMood: 'happy',
+      defaultCharacter: '토끼',
 
-  setDefaults: ({ mood, character }) =>
-    set({ defaultMood: mood, defaultCharacter: character }),
+      setDiary: (text) => set({ diary: text }),
 
-  saveStory: (story) => {
-    const { savedStories } = get();
-    if (!savedStories.includes(story)) {
-      set({ savedStories: [story, ...savedStories] });
+      setDiaryByDate: (date, text) =>
+        set((state) => ({
+          diaryByDate: {
+            ...state.diaryByDate,
+            [date]: text,
+          },
+          diary: text, // 현재 다이어리도 업데이트
+        })),
+
+      getDiaryByDate: (date) => get().diaryByDate?.[date] || '',
+
+      setStory: (text) =>
+        set((state) => ({
+          story: text,
+          storyHistory: [...state.storyHistory, text],
+        })),
+      setPoem: (text) =>
+        set((state) => ({
+          poem: text,
+          poemHistory: [...state.poemHistory, text],
+        })),
+      saveStory: () =>
+        set((state) => ({
+          savedStories: [...state.savedStories, state.story],
+        })),
+      savePoem: () =>
+        set((state) => ({
+          savedPoems: [...state.savedPoems, state.poem],
+        })),
+      deleteSavedStory: (index) =>
+        set((state) => ({
+          savedStories: state.savedStories.filter((_, i) => i !== index),
+        })),
+      deleteSavedPoem: (index) =>
+        set((state) => ({
+          savedPoems: state.savedPoems.filter((_, i) => i !== index),
+        })),
+      setDefaults: ({ mood, character }) =>
+        set({ defaultMood: mood, defaultCharacter: character }),
+    }),
+    {
+      name: 'story-storage',
     }
-  },
-}));
+  )
+);

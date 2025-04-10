@@ -104,13 +104,20 @@ def generate_story(data: StoryRequest):
 
 @app.post("/generate-poem")
 def generate_poem(data: StoryRequest):
-    prompt = (
-        f"너는 감성을 표현하는 시인이야.\n\n"
-        f"'{data.character}'라는 캐릭터가 등장하고, '{data.mood}'한 감정을 담은 **자유시**를 작성해줘.\n"
-        f"'{data.mood}'한 감정 영어 단어가 시에 들어가지 않게 해줘. 한국어 단어는 괜찮아.\n"
-        f"절대 동화처럼 이야기 형식으로 하지 말고, 시 형식(줄바꿈, 은유, 운율 등)을 사용해줘.\n\n"
-        f"일기 내용:\n{data.diary}\n\n"
-        f"4행 이상, 감정 중심의 시를 써줘."
+    # 1. 일기 기반 감정 요약 먼저 수행
+    analysis = llm.invoke(
+        f"""다음 일기를 읽고 감정과 사건 요약을 해줘:\n\n{data.diary}\n\n
+        형식:\n감정: [감정 내용]\n사건 요약: [사건 요약]"""
     )
+    
+    # 2. 그 감정을 바탕으로 시 생성
+    prompt = (
+        f"{analysis}\n\n"
+        f"위의 감정과 사건 요약을 바탕으로, '{data.character}'가 등장하고 "
+        f"그 감정을 담은 자유시를 작성해줘.\n"
+        f"줄바꿈과 운율을 갖춘 자유시로, 감정을 섬세하게 표현해줘.\n"
+        f"동화와 감정 흐름이 어울리도록 따뜻하고 정서적인 시로 만들어줘."
+    )
+
     result = llm.invoke(prompt)
     return {"story": str(result.content)}
