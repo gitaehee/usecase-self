@@ -7,8 +7,6 @@ import { generatePoem } from '@/lib/api';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-const getTodayKey = () => new Date().toISOString().split('T')[0];
-
 export default function PoemPage() {
   const {
     diary,
@@ -26,6 +24,8 @@ export default function PoemPage() {
 
   const searchParams = useSearchParams();
   const shouldGenerate = searchParams.get('generate') === 'true';
+  const dateParam = searchParams.get('date');
+  const selectedKey = dateParam || new Date().toISOString().split('T')[0];
 
   const [localPoem, setLocalPoem] = useState(poem || '');
   const [loading, setLoading] = useState(false);
@@ -37,23 +37,20 @@ export default function PoemPage() {
   const hasGeneratedRef = useRef(false);
 
   useEffect(() => {
-    const todayKey = getTodayKey();
-    const todayDiary = getDiaryByDate(todayKey);
+    const diaryForDate = getDiaryByDate(selectedKey);
 
-    // ✅ diary가 비어 있으면 복구
-    if (!diary && todayDiary) {
-      setDiary(todayDiary);
+    if (!diary && diaryForDate) {
+      setDiary(diaryForDate);
     }
 
-    // ✅ 조건: 한번도 generate 안 했고, 생성해야 하고, 일기가 있어야 함
-    if (!hasGeneratedRef.current && shouldGenerate && todayDiary) {
+    if (!hasGeneratedRef.current && shouldGenerate && diaryForDate) {
       hasGeneratedRef.current = true;
 
       const generate = async () => {
         setLoading(true);
         try {
           const text = await generatePoem({
-            diary: todayDiary,
+            diary: diaryForDate,
             mood: effectiveMood,
             character: effectiveCharacter,
           });
@@ -68,7 +65,7 @@ export default function PoemPage() {
 
       generate();
     }
-  }, []);
+  }, [selectedKey]);
 
   return (
     <div className="p-6 max-w-xl mx-auto text-white">

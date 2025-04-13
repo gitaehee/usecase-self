@@ -14,7 +14,7 @@ if not api_key:
 os.environ["OPENAI_API_KEY"] = api_key  # ChatOpenAI가 내부에서 이걸 사용함
 
 # ✅ ChatOpenAI 호출 시 openai_api_key 인자 ❌
-llm = ChatOpenAI(model="gpt-3.5-turbo")
+llm = ChatOpenAI(model="gpt-4o")
 
 app = FastAPI()
 
@@ -56,40 +56,41 @@ def generate_story(data: StoryRequest):
         verbose=True
     )
 
-    # 1. 감정과 사건 요약 Task
+    # Task 1: 감정 분석
     analyze_task = Task(
         description=(
-            f"사용자의 일기를 읽고, 감정과 주요 사건을 다음 형식에 맞춰 요약해줘:\n\n"
+            f"사용자의 일기를 읽고, 감정과 주요 사건을 요약해줘.\n\n"
             f"{data.diary}\n\n"
-            "출력 형식:\n감정: [감정 내용]\n사건 요약: [사건 요약]"
+            "출력 형식:\n감정: ...\n사건 요약: ..."
         ),
-        expected_output="감정: [감정 내용], 사건 요약: [사건 요약]",
         agent=analyzer
     )
+    emotion_summary = analyze_task.execute()
 
-    # 2. 동화 생성 Task
+    # Task 2: 동화 생성
     generate_task = Task(
         description=(
-            "이전 분석 결과(감정과 사건 요약)를 참고해서, "
-            f"'{data.character}'라는 이름의 캐릭터를 주인공으로 한 짧은 동화를 써줘.\n"
-            "감성적이고 따뜻한 느낌으로 구성해줘.\n\n"
-            "출력 형식:\n동화: [동화 내용]"
+            f"아래 감정과 사건 요약을 참고해서, "
+            f"'{data.character}'라는 캐릭터가 주인공인 짧은 동화를 작성해줘.\n"
+            f"{emotion_summary}\n\n"
+            "감성적이고 따뜻한 느낌으로, 자연스러운 한국어로 작성해줘.\n"
+            "**'동화:' 같은 머리말 없이, 본문만 출력해줘. 영어 표현은 쓰지 마.**"
         ),
-        expected_output="동화: [감성적이고 따뜻한 짧은 동화]",
         agent=generator
     )
+    story_text = generate_task.execute()
 
-    # 3. 무드 조정 Task
+    # Task 3: 무드 조정
     mood_task = Task(
         description=(
-            f"다음 동화를 '{data.mood}'한 무드와 분위기로 자연스럽게 수정해줘.\n"
-            "예를 들어, '희망찬' 무드라면 긍정적인 결말과 밝은 분위기로, "
-            "'잔잔한' 무드라면 부드럽고 조용한 흐름으로 바꿔줘.\n\n"
-            "출력 형식:\n감정 조정된 동화: [수정된 동화 내용]"
+            f"다음 동화를 '{data.mood}'한 무드로 자연스럽게 바꿔줘.\n"
+            "예: '희망찬'이면 밝은 결말과 긍정적 분위기, '잔잔한'이면 조용하고 부드러운 흐름.\n"
+            "**'수정된 동화 내용:' 같은 문구 없이 동화 본문만 출력해줘.**\n\n"
+            f"{story_text}"
         ),
-        expected_output=f"감정 조정된 동화: [{data.mood}한 분위기의 동화 전체]",
         agent=mooder
     )
+    final_story = mood_task.execute()
 
 
     crew = Crew(
@@ -100,7 +101,7 @@ def generate_story(data: StoryRequest):
     )
 
     result = crew.kickoff()
-    return {"story": result}
+    return {"story": final_story}
 
 @app.post("/generate-poem")
 def generate_poem(data: StoryRequest):
@@ -114,7 +115,7 @@ def generate_poem(data: StoryRequest):
     prompt = (
         f"{analysis}\n\n"
         f"위의 감정과 사건 요약을 바탕으로, '{data.character}'가 등장하고 "
-        f"그 감정을 담은 자유시를 작성해줘.\n"
+        f"그 감정을 담은 자유시를 **한국어로** 작성해줘.\n"
         f"줄바꿈과 운율을 갖춘 자유시로, 감정을 섬세하게 표현해줘.\n"
         f"동화와 감정 흐름이 어울리도록 따뜻하고 정서적인 시로 만들어줘."
     )

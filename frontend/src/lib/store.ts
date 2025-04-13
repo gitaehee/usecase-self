@@ -3,7 +3,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface StoryStore {
   diary: string;
@@ -23,8 +23,8 @@ interface StoryStore {
   defaultCharacter: string;
 
   setDiary: (text: string) => void;
-  setDiaryByDate: (date: string, text: string) => void;  // ✅ 추가
-  getDiaryByDate: (date: string) => string | undefined;  // ✅ 추가
+  setDiaryByDate: (date: string, text: string) => void;
+  getDiaryByDate: (date: string) => string | undefined;
 
   setStory: (text: string) => void;
   setPoem: (text: string) => void;
@@ -39,7 +39,7 @@ export const useStoryStore = create<StoryStore>()(
   persist(
     (set, get) => ({
       diary: '',
-      diaryByDate: {}, // ✅ 초기값
+      diaryByDate: {},
 
       mood: '',
       character: '',
@@ -62,7 +62,7 @@ export const useStoryStore = create<StoryStore>()(
             ...state.diaryByDate,
             [date]: text,
           },
-          diary: text, // 현재 다이어리도 업데이트
+          diary: text,
         })),
 
       getDiaryByDate: (date) => get().diaryByDate?.[date] || '',
@@ -72,32 +72,51 @@ export const useStoryStore = create<StoryStore>()(
           story: text,
           storyHistory: [...state.storyHistory, text],
         })),
+
       setPoem: (text) =>
         set((state) => ({
           poem: text,
           poemHistory: [...state.poemHistory, text],
         })),
+
       saveStory: () =>
         set((state) => ({
           savedStories: [...state.savedStories, state.story],
         })),
+
       savePoem: () =>
         set((state) => ({
           savedPoems: [...state.savedPoems, state.poem],
         })),
+
       deleteSavedStory: (index) =>
         set((state) => ({
           savedStories: state.savedStories.filter((_, i) => i !== index),
         })),
+
       deleteSavedPoem: (index) =>
         set((state) => ({
           savedPoems: state.savedPoems.filter((_, i) => i !== index),
         })),
+
       setDefaults: ({ mood, character }) =>
         set({ defaultMood: mood, defaultCharacter: character }),
     }),
     {
       name: 'story-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state: StoryStore) => ({
+        diary: state.diary,
+        diaryByDate: state.diaryByDate,
+        story: state.story,
+        poem: state.poem,
+        savedStories: state.savedStories,
+        savedPoems: state.savedPoems,
+        storyHistory: state.storyHistory,
+        poemHistory: state.poemHistory,
+        defaultMood: state.defaultMood,
+        defaultCharacter: state.defaultCharacter,
+      }),
     }
   )
 );

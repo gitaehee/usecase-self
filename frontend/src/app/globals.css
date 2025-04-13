@@ -24,3 +24,37 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 날짜 텍스트 색상 */
+.react-calendar__tile {
+  color: #1f1f1f !important; /* 진한 회색 또는 검정 계열 */
+}
+
+/* 선택된 날짜 (배경은 파란색이니까, 글자는 흰색 유지) */
+.react-calendar__tile--active {
+  color: #ffffff !important;
+}
+
+/* 오늘 날짜 스타일 (원하는 색상으로 조절 가능) */
+.react-calendar__tile--now {
+  background: #ffe58f;
+  color: #000 !important;
+  font-weight: bold;
+}
+
+/* 요일 헤더 텍스트 (월~일) */
+.react-calendar__month-view__weekdays {
+  color: #999;
+}
+
+/* 상단 월/연도 텍스트 색상 수정 */
+.react-calendar__navigation__label {
+  color: #1f1f1f !important; /* 또는 원하는 진한 색상 */
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* 네비게이션 버튼 (◀ ▶) 색상도 흐리면 함께 처리 */
+.react-calendar__navigation button {
+  color: #333 !important;
+}
