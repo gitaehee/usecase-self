@@ -7,6 +7,8 @@ import { generateStory } from '@/lib/api';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
+const getTodayKey = () => new Date().toISOString().split('T')[0];
+
 export default function StoryPage() {
   const {
     mood,
@@ -23,8 +25,6 @@ export default function StoryPage() {
 
   const searchParams = useSearchParams();
   const shouldGenerate = searchParams.get('generate') === 'true';
-  const dateParam = searchParams.get('date');
-  const selectedKey = dateParam || new Date().toISOString().split('T')[0];
 
   const [localStory, setLocalStory] = useState(story || '');
   const [loading, setLoading] = useState(false);
@@ -34,21 +34,22 @@ export default function StoryPage() {
   const effectiveMood = mood || defaultMood;
   const effectiveCharacter = character || defaultCharacter;
 
+  // ✅ 첫 생성 여부 추적용
   const hasGeneratedRef = useRef(false);
 
   useEffect(() => {
-    const diaryForDate = getDiaryByDate(selectedKey);
+    const todayDiary = getDiaryByDate(getTodayKey());
 
-    if (!diaryForDate || !shouldGenerate || hasGeneratedRef.current) return;
+    if (!todayDiary || !shouldGenerate || hasGeneratedRef.current) return;
 
-    hasGeneratedRef.current = true;
-    setDiary(diaryForDate);
+    hasGeneratedRef.current = true; // ✅ 최초 1회만 생성되도록 막음
+    setDiary(todayDiary);
 
     const generate = async () => {
       setLoading(true);
       try {
         const text = await generateStory({
-          diary: diaryForDate,
+          diary: todayDiary,
           mood: effectiveMood,
           character: effectiveCharacter,
         });
@@ -62,7 +63,7 @@ export default function StoryPage() {
     };
 
     generate();
-  }, [selectedKey]);
+  }, []);
 
   return (
     <div className="p-6 max-w-xl mx-auto text-white">

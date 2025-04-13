@@ -39,8 +39,10 @@ export default function PoemPage() {
   useEffect(() => {
     const diaryForDate = getDiaryByDate(selectedKey);
 
-    if (!diary && diaryForDate) {
-      setDiary(diaryForDate);
+    // ✅ 기존 시 불러오기
+    if (!shouldGenerate && poem) {
+      setLocalPoem(poem);
+      return;
     }
 
     if (!hasGeneratedRef.current && shouldGenerate && diaryForDate) {

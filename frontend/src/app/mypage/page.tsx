@@ -2,6 +2,8 @@
 'use client';
 
 import { useStoryStore } from '@/lib/store';
+import { useState } from 'react';
+import StoryModal from '../../components/StoryModal';
 
 export default function MyPage() {
   const {
@@ -11,9 +13,12 @@ export default function MyPage() {
     storyHistory,
     savedStories,
     savedPoems,
-    deleteSavedStory, // ✅ 추가
-    deleteSavedPoem,  // ✅ 추가
+    deleteSavedStory,
+    deleteSavedPoem,
   } = useStoryStore();
+
+  const [openText, setOpenText] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   const handleMoodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setDefaults({ mood: e.target.value, character: defaultCharacter });
@@ -70,7 +75,11 @@ export default function MyPage() {
               .map((s, i) => (
                 <li
                   key={i}
-                  className="bg-[#2a281f] text-sm text-gray-100 p-4 rounded-xl border border-[#4c493f]"
+                  className="bg-[#2a281f] text-sm text-gray-100 p-4 rounded-xl border border-[#4c493f] cursor-pointer"
+                  onClick={() => {
+                    setOpenText(s);
+                    setShowModal(true);
+                  }}
                 >
                   {s.slice(0, 100)}...
                 </li>
@@ -78,7 +87,6 @@ export default function MyPage() {
           )}
         </ul>
       </div>
-
 
       {/* ⭐ 저장한 동화 */}
       <div className="mb-10">
@@ -92,7 +100,15 @@ export default function MyPage() {
                 key={i}
                 className="bg-[#2a281f] text-sm text-yellow-100 p-4 rounded-xl border border-[#5a554a] flex justify-between items-start gap-4"
               >
-                <span>{s.slice(0, 100)}...</span>
+                <span
+                  onClick={() => {
+                    setOpenText(s);
+                    setShowModal(true);
+                  }}
+                  className="cursor-pointer flex-1"
+                >
+                  {s.slice(0, 100)}...
+                </span>
                 <button
                   onClick={() => deleteSavedStory(i)}
                   className="text-red-300 hover:text-red-500 text-xs"
@@ -117,7 +133,15 @@ export default function MyPage() {
                 key={i}
                 className="bg-[#2a281f] text-sm text-purple-100 p-4 rounded-xl border border-[#5a554a] flex justify-between items-start gap-4"
               >
-                <span>{p.slice(0, 100)}...</span>
+                <span
+                  onClick={() => {
+                    setOpenText(p);
+                    setShowModal(true);
+                  }}
+                  className="cursor-pointer flex-1"
+                >
+                  {p.slice(0, 100)}...
+                </span>
                 <button
                   onClick={() => deleteSavedPoem(i)}
                   className="text-red-300 hover:text-red-500 text-xs"
@@ -129,6 +153,10 @@ export default function MyPage() {
           )}
         </ul>
       </div>
+
+      {showModal && (
+        <StoryModal text={openText} onClose={() => setShowModal(false)} />
+      )}
     </div>
   );
 }
