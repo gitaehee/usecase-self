@@ -19,13 +19,22 @@ export default function MyPage() {
 
   const [openText, setOpenText] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [moodInput, setMoodInput] = useState(defaultMood);
+  const [characterInput, setCharacterInput] = useState(defaultCharacter);
 
-  const handleMoodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setDefaults({ mood: e.target.value, character: defaultCharacter });
+  const moodOptions = ['happy', 'sad', 'angry', 'revenge'];
+  const characterOptions = ['토끼', '고양이', '강아지'];
+
+  const handleMoodChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const value = e.target.value;
+    setMoodInput(value);
+    setDefaults({ mood: value, character: defaultCharacter });
   };
 
-  const handleCharacterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setDefaults({ mood: defaultMood, character: e.target.value });
+  const handleCharacterChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const value = e.target.value;
+    setCharacterInput(value);
+    setDefaults({ mood: defaultMood, character: value });
   };
 
   return (
@@ -37,28 +46,47 @@ export default function MyPage() {
         <div>
           <label className="block mb-1 text-pink-200">기본 무드</label>
           <select
-            value={defaultMood}
+            value={moodOptions.includes(moodInput) ? moodInput : '기타'}
             onChange={handleMoodChange}
-            className="bg-[#2a281f] text-white border border-[#5c584f] p-2 rounded-lg w-full"
+            className="bg-[#2a281f] text-white border border-[#5c584f] p-2 rounded-lg w-full mb-2"
           >
-            <option value="happy">해피엔딩</option>
-            <option value="sad">슬픈엔딩</option>
-            <option value="angry">화남엔딩</option>
-            <option value="revenge">복수엔딩</option>
+            {moodOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}엔딩</option>
+            ))}
+            <option value="기타">직접 입력</option>
           </select>
+          {moodOptions.includes(moodInput) ? null : (
+            <input
+              type="text"
+              value={moodInput}
+              onChange={handleMoodChange}
+              placeholder="예: 몽환엔딩"
+              className="bg-[#2a281f] text-white border border-[#5c584f] p-2 rounded-lg w-full"
+            />
+          )}
         </div>
 
         <div>
           <label className="block mb-1 text-pink-200">기본 캐릭터</label>
           <select
-            value={defaultCharacter}
+            value={characterOptions.includes(characterInput) ? characterInput : '기타'}
             onChange={handleCharacterChange}
-            className="bg-[#2a281f] text-white border border-[#5c584f] p-2 rounded-lg w-full"
+            className="bg-[#2a281f] text-white border border-[#5c584f] p-2 rounded-lg w-full mb-2"
           >
-            <option value="토끼">토끼</option>
-            <option value="고양이">고양이</option>
-            <option value="강아지">강아지</option>
+            {characterOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+            <option value="기타">직접 입력</option>
           </select>
+          {characterOptions.includes(characterInput) ? null : (
+            <input
+              type="text"
+              value={characterInput}
+              onChange={handleCharacterChange}
+              placeholder="예: 곰돌이, 여우 등"
+              className="bg-[#2a281f] text-white border border-[#5c584f] p-2 rounded-lg w-full"
+            />
+          )}
         </div>
       </div>
 
