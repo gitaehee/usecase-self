@@ -92,7 +92,6 @@ def generate_story(data: StoryRequest):
     )
     final_story = mood_task.execute()
 
-
     crew = Crew(
         agents=[analyzer, generator, mooder],
         tasks=[analyze_task, generate_task, mood_task],
@@ -105,20 +104,67 @@ def generate_story(data: StoryRequest):
 
 @app.post("/generate-poem")
 def generate_poem(data: StoryRequest):
-    # 1. 일기 기반 감정 요약 먼저 수행
-    analysis = llm.invoke(
-        f"""다음 일기를 읽고 감정과 사건 요약을 해줘:\n\n{data.diary}\n\n
-        형식:\n감정: [감정 내용]\n사건 요약: [사건 요약]"""
+    analyzer = Agent(
+        role="일기 분석가",
+        goal="사용자의 감정과 핵심 사건을 분석하기",
+        backstory="감정 심리를 잘 파악하는 AI 분석가",
+        llm=llm,
+        verbose=True
     )
-    
-    # 2. 그 감정을 바탕으로 시 생성
-    prompt = (
-        f"{analysis}\n\n"
-        f"위의 감정과 사건 요약을 바탕으로, '{data.character}'가 등장하고 "
-        f"그 감정을 담은 자유시를 **한국어로** 작성해줘.\n"
-        f"줄바꿈과 운율을 갖춘 자유시로, 감정을 섬세하게 표현해줘.\n"
-        f"동화와 감정 흐름이 어울리도록 따뜻하고 정서적인 시로 만들어줘."
+    poet = Agent(
+        role="시 생성기",
+        goal="감정을 바탕으로 감성적인 자유시를 생성하기",
+        backstory="섬세한 감정을 잘 표현하는 시인",
+        llm=llm,
+        verbose=True
+    )
+    mooder = Agent(
+        role="무드 조정가",
+        goal="선택된 무드에 맞게 시 분위기를 조정하기",
+        backstory="감정 흐름에 따라 시의 정서를 섬세하게 조정하는 시인",
+        llm=llm,
+        verbose=True
     )
 
-    result = llm.invoke(prompt)
-    return {"story": str(result.content)}
+    # Task 1: 감정 요약
+    analyze_task = Task(
+        description=(
+            f"다음 일기를 읽고 감정과 사건 요약을 해줘:\n\n{data.diary}\n\n"
+            "형식:\n감정: ...\n사건 요약: ..."
+        ),
+        agent=analyzer
+    )
+    emotion_summary = analyze_task.execute()
+
+    # Task 2: 시 생성
+    generate_task = Task(
+        description=(
+            f"아래 감정과 사건 요약을 바탕으로, '{data.character}'가 등장하고 감정을 담은 자유시를 작성해줘.\n"
+            f"{emotion_summary}\n\n"
+            "줄바꿈과 운율을 갖춘 자유시로, 감정을 섬세하게 표현하고 자연스러운 한국어로 작성해줘."
+        ),
+        agent=poet
+    )
+    poem_text = generate_task.execute()
+
+    # Task 3: 시 무드 조정
+    mood_task = Task(
+        description=(
+            f"다음 시를 '{data.mood}'한 분위기로 자연스럽게 바꿔줘.\n"
+            "예: '잔잔한' 무드면 고요하고 서정적인 흐름, '슬픈' 무드면 애절한 톤으로.\n"
+            "**'수정된 시:' 같은 문구 없이 시 본문만 출력해줘.**\n\n"
+            f"{poem_text}"
+        ),
+        agent=mooder
+    )
+    final_poem = mood_task.execute()
+
+    crew = Crew(
+        agents=[analyzer, poet, mooder],
+        tasks=[analyze_task, generate_task, mood_task],
+        verbose=True,
+        manager_llm=llm
+    )
+
+    result = crew.kickoff()
+    return {"story": final_poem}
