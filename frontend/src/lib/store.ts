@@ -7,12 +7,17 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface StoryStore {
   diary: string;
-  diaryByDate: { [date: string]: string }; // ✅ 날짜별 일기 저장
+  diaryByDate: { [date: string]: string };
 
   mood: string;
   character: string;
   story: string;
   poem: string;
+
+  storyByDate: { [date: string]: string };
+  poemByDate: { [date: string]: string };
+  savedStoriesByDate: { [date: string]: boolean };
+  savedPoemsByDate: { [date: string]: boolean };
 
   storyHistory: string[];
   savedStories: string[];
@@ -25,6 +30,14 @@ interface StoryStore {
   setDiary: (text: string) => void;
   setDiaryByDate: (date: string, text: string) => void;
   getDiaryByDate: (date: string) => string | undefined;
+
+  getStoryByDate: (date: string) => string | undefined;
+  setStoryByDate: (date: string, text: string) => void;
+  saveStoryByDate: (date: string) => void;
+
+  getPoemByDate: (date: string) => string | undefined;
+  setPoemByDate: (date: string, text: string) => void;
+  savePoemByDate: (date: string) => void;
 
   setStory: (text: string) => void;
   setPoem: (text: string) => void;
@@ -46,6 +59,11 @@ export const useStoryStore = create<StoryStore>()(
       story: '',
       poem: '',
 
+      storyByDate: {},
+      poemByDate: {},
+      savedStoriesByDate: {},
+      savedPoemsByDate: {},
+
       storyHistory: [],
       savedStories: [],
       poemHistory: [],
@@ -66,6 +84,38 @@ export const useStoryStore = create<StoryStore>()(
         })),
 
       getDiaryByDate: (date) => get().diaryByDate?.[date] || '',
+
+      getStoryByDate: (date) => get().storyByDate?.[date] || '',
+      setStoryByDate: (date, text) =>
+        set((state) => ({
+          storyByDate: {
+            ...state.storyByDate,
+            [date]: text,
+          },
+        })),
+      saveStoryByDate: (date) =>
+        set((state) => ({
+          savedStoriesByDate: {
+            ...state.savedStoriesByDate,
+            [date]: true,
+          },
+        })),
+
+      getPoemByDate: (date) => get().poemByDate?.[date] || '',
+      setPoemByDate: (date, text) =>
+        set((state) => ({
+          poemByDate: {
+            ...state.poemByDate,
+            [date]: text,
+          },
+        })),
+      savePoemByDate: (date) =>
+        set((state) => ({
+          savedPoemsByDate: {
+            ...state.savedPoemsByDate,
+            [date]: true,
+          },
+        })),
 
       setStory: (text) =>
         set((state) => ({
@@ -110,6 +160,10 @@ export const useStoryStore = create<StoryStore>()(
         diaryByDate: state.diaryByDate,
         story: state.story,
         poem: state.poem,
+        storyByDate: state.storyByDate,
+        poemByDate: state.poemByDate,
+        savedStoriesByDate: state.savedStoriesByDate,
+        savedPoemsByDate: state.savedPoemsByDate,
         savedStories: state.savedStories,
         savedPoems: state.savedPoems,
         storyHistory: state.storyHistory,
