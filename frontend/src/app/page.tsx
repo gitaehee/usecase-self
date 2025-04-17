@@ -10,7 +10,7 @@ import 'react-calendar/dist/Calendar.css';
 const Calendar = dynamic(() => import('react-calendar'), { ssr: false });
 
 const getKeyFromDate = (date: Date) => {
-  return date.toLocaleDateString('sv-SE'); // KST 기준 'YYYY-MM-DD' 형식
+  return date.toLocaleDateString('sv-SE'); // YYYY-MM-DD (KST)
 };
 
 const formatDisplayDate = (date: Date) =>
@@ -32,6 +32,8 @@ export default function Home() {
     getDiaryByDate,
     getStoryByDate,
     getPoemByDate,
+    setStoryByDate,
+    setPoemByDate,
     setStory,
     setPoem,
   } = useStoryStore();
@@ -46,6 +48,10 @@ export default function Home() {
   const isFutureDate = selectedDate
     ? new Date(selectedDate).setHours(0, 0, 0, 0) > today.getTime()
     : false;
+
+  const hasSavedStory = !!getStoryByDate(selectedKey)?.trim();
+  const hasSavedPoem = !!getPoemByDate(selectedKey)?.trim();
+  const shouldShowPreview = saved || hasSavedStory || hasSavedPoem;
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -74,6 +80,8 @@ export default function Home() {
     setStory('');
     setPoem('');
     setLocalDiary('');
+    setStoryByDate(selectedKey, ''); // ✅ 동화 삭제
+    setPoemByDate(selectedKey, '');  // ✅ 시 삭제
     setSaved(false);
   };
 
@@ -100,7 +108,7 @@ export default function Home() {
       <Calendar
         onChange={(value) => setSelectedDate(value as Date)}
         value={selectedDate || new Date()}
-        tileContent={({ date, view }) => {
+        tileContent={({ date }) => {
           const key = getKeyFromDate(date);
           return getDiaryByDate(key) ? <span className="text-green-400">✔</span> : null;
         }}
@@ -117,47 +125,73 @@ export default function Home() {
             <div className="text-red-400 text-sm mb-4">
               미래 날짜의 일기는 작성할 수 없어요!
             </div>
-          ) : saved ? (
+          ) : shouldShowPreview ? (
             <>
-              <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 p-4 rounded mb-4">
-                ✅ 이 날의 일기가 저장되어 있어요 😊
-                <div className="mt-2 bg-white text-black p-3 rounded whitespace-pre-wrap text-sm max-h-40 overflow-y-auto">
-                  {localDiary}
+              {saved && (
+                <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 p-4 rounded mb-4">
+                  ✅ 이 날의 일기가 저장되어 있어요 😊
+                  <div className="mt-2 bg-white text-black p-3 rounded whitespace-pre-wrap text-sm max-h-40 overflow-y-auto">
+                    {localDiary}
+                  </div>
+                  <button
+                    onClick={handleReset}
+                    className="mt-3 inline-flex items-center gap-1 text-red-500 hover:text-red-600 text-sm"
+                  >
+                    🗑️ 삭제하고 다시 쓸게요
+                  </button>
                 </div>
-                <button
-                  onClick={handleReset}
-                  className="mt-3 inline-flex items-center gap-1 text-red-500 hover:text-red-600 text-sm"
-                >
-                  🗑️ 삭제하고 다시 쓸게요
-                </button>
-              </div>
+              )}
 
-              <div className="mt-6 p-4 bg-[#1d1b16] text-white rounded-xl">
-                <p className="text-pink-300 font-bold mb-2">
-                  📖 {formatDisplayDate(selectedDate)}의 동화 미리보기
-                </p>
-                <div className="text-sm whitespace-pre-wrap overflow-hidden text-ellipsis max-h-[100px]">
-                  {getStoryByDate(selectedKey) || '동화가 아직 없어요.'}
-                </div>
-                <button
-                  onClick={handleGoToStory}
-                  className="mt-2 text-sm text-blue-300 hover:underline"
-                >
-                  전체 보기 →
-                </button>
-              </div>
+              <div className="space-y-3">
+                {!hasSavedStory && (
+                  <button
+                    onClick={handleGoToStory}
+                    className="bg-pink-300 hover:bg-pink-400 text-black px-4 py-2 rounded-xl w-full font-semibold"
+                  >
+                    ✨ 동화 만들기
+                  </button>
+                )}
 
-              <div className="mt-4 p-4 bg-[#1d1b16] text-white rounded-xl">
-                <p className="text-purple-300 font-bold mb-2">🌙 시 미리보기</p>
-                <div className="text-sm whitespace-pre-wrap overflow-hidden text-ellipsis max-h-[100px]">
-                  {getPoemByDate(selectedKey) || '시는 아직 없어요.'}
-                </div>
-                <button
-                  onClick={handleGoToPoem}
-                  className="mt-2 text-sm text-blue-300 hover:underline"
-                >
-                  전체 보기 →
-                </button>
+                {hasSavedStory && (
+                  <div className="p-4 bg-[#1d1b16] text-white rounded-xl">
+                    <p className="text-pink-300 font-bold mb-2">
+                      📖 {formatDisplayDate(selectedDate)}의 동화 미리보기
+                    </p>
+                    <div className="text-sm whitespace-pre-wrap overflow-hidden text-ellipsis max-h-[100px]">
+                      {getStoryByDate(selectedKey) || '동화가 아직 없어요.'}
+                    </div>
+                    <button
+                      onClick={handleGoToStory}
+                      className="mt-2 text-sm text-blue-300 hover:underline"
+                    >
+                      전체 보기 →
+                    </button>
+                  </div>
+                )}
+
+                {!hasSavedPoem && (
+                  <button
+                    onClick={handleGoToPoem}
+                    className="bg-purple-300 hover:bg-purple-400 text-black px-4 py-2 rounded-xl w-full font-semibold"
+                  >
+                    🌙 시 만들기
+                  </button>
+                )}
+
+                {hasSavedPoem && (
+                  <div className="p-4 bg-[#1d1b16] text-white rounded-xl">
+                    <p className="text-purple-300 font-bold mb-2">🌙 시 미리보기</p>
+                    <div className="text-sm whitespace-pre-wrap overflow-hidden text-ellipsis max-h-[100px]">
+                      {getPoemByDate(selectedKey) || '시는 아직 없어요.'}
+                    </div>
+                    <button
+                      onClick={handleGoToPoem}
+                      className="mt-2 text-sm text-blue-300 hover:underline"
+                    >
+                      전체 보기 →
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           ) : (
