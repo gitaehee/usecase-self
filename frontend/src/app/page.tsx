@@ -141,7 +141,7 @@ export default function Home() {
                   </div>
                   <button
                     onClick={handleReset}
-                    className="mt-3 inline-flex items-center gap-1 text-red-500 hover:text-red-600 text-sm"
+                    className="mt-3 inline-flex items-center gap-1 text-red-500 hover:text-red-600 text-sm cursor-pointer transition-colors"
                   >
                     🗑️ 삭제하고 다시 쓸게요
                   </button>
@@ -179,7 +179,7 @@ export default function Home() {
                     {hasSavedStory ? (
                       <div className="p-4 h-full flex flex-col justify-between">
                         <p className="text-pink-300 font-bold mb-2">
-                          📖 {formatDisplayDate(selectedDate)}의 동화 미리보기
+                          📖 동화 미리보기
                         </p>
                         <div className="text-sm whitespace-pre-wrap overflow-hidden line-clamp-4">
                           {getStoryByDate(selectedKey)}
