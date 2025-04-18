@@ -39,7 +39,9 @@ export default function PoemPage() {
   const [saved, setSaved] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
-  const alreadySaved = savedPoemsByDate[selectedKey];
+  // 🧠 정확한 저장 여부 판단
+  const poemForDate = getPoemByDate(selectedKey);
+  const alreadySaved = !!poemForDate && poemForDate.trim() !== '';
   const effectiveMood = mood || defaultMood;
   const effectiveCharacter = character || defaultCharacter;
   const hasGeneratedRef = useRef(false);
@@ -57,14 +59,15 @@ export default function PoemPage() {
     if (!hydrated) return;
 
     const diaryForDate = getDiaryByDate(selectedKey);
-    const poemForDate = getPoemByDate(selectedKey);
 
+    // 저장된 시 불러오기
     if (!shouldGenerate && poemForDate && poemForDate.trim() !== '') {
       setLocalPoem(poemForDate);
       return;
     }
 
-    if (!hasGeneratedRef.current && shouldGenerate && diaryForDate && diaryForDate.trim() !== '') {
+    // 새로 생성
+    if (!hasGeneratedRef.current && shouldGenerate && diaryForDate?.trim()) {
       hasGeneratedRef.current = true;
       setDiary(diaryForDate);
 
@@ -90,6 +93,12 @@ export default function PoemPage() {
     }
   }, [hydrated, selectedKey, shouldGenerate]);
 
+  const handleDelete = () => {
+    setPoemByDate(selectedKey, ''); // zustand에 빈 값 저장
+    setLocalPoem('');
+    setSaved(false);
+  };
+
   return (
     <div className="p-6 max-w-xl mx-auto text-white">
       <h1 className="text-2xl font-bold mb-6 text-pink-200">
@@ -112,9 +121,17 @@ export default function PoemPage() {
         </button>
       )}
 
-      {saved || alreadySaved ? (
-        <div className="mt-4 text-green-400 text-center">✅ 시가 저장되었습니다!</div>
-      ) : null}
+      {(saved || alreadySaved) && localPoem.trim() !== '' && (
+        <div className="mt-4 text-center">
+          <div className="text-green-400 text-sm mb-2">✅ 시가 저장되었습니다!</div>
+          <button
+            onClick={handleDelete}
+            className="text-sm text-red-400 hover:text-red-500"
+          >
+            🗑️ 저장된 시 삭제하기
+          </button>
+        </div>
+      )}
 
       <button
         onClick={() => router.push('/')}

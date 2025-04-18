@@ -117,19 +117,21 @@ export default function Home() {
 
   return (
     <div className="p-6 max-w-xl mx-auto">
-      <Calendar
-        onChange={(value) => setSelectedDate(value as Date)}
-        value={selectedDate || new Date()}
-        calendarType={'gregory' as CalendarType} // 일요일 시작
-        tileContent={({ date }) => {
-          const key = getKeyFromDate(date);
-          return getDiaryByDate(key) ? <span className="text-green-400">✔</span> : null;
-        }}
-      />
+      <div className="w-fit mx-auto scale-[1.2] md:scale-[1.25] mb-6">
+        <Calendar
+          onChange={(value) => setSelectedDate(value as Date)}
+          value={selectedDate || new Date()}
+          calendarType={'gregory' as CalendarType}
+          tileClassName={({ date }) => {
+            const key = getKeyFromDate(date);
+            return getDiaryByDate(key) ? 'saved-date' : undefined;
+          }}
+        />
+      </div>
 
       {selectedDate && (
         <>
-          <h1 className="text-xl font-bold text-gray-400 mt-6 mb-2">
+          <h1 className="text-xl font-bold text-gray-400 mt-16 mb-2">
             {formatDisplayDate(selectedDate)}
           </h1>
           <h2 className="text-2xl font-bold mb-4 text-white">일기 작성</h2>
@@ -157,52 +159,48 @@ export default function Home() {
 
               <div className="space-y-3">
                 {!hasSavedStory && (
-                  <button
+                  <div
                     onClick={handleGoToStory}
-                    className="bg-pink-300 hover:bg-pink-400 text-black px-4 py-2 rounded-xl w-full font-semibold"
+                    className="cursor-pointer bg-pink-300 hover:bg-pink-400 text-black px-4 py-4 rounded-xl shadow-md transition-transform hover:scale-105"
                   >
                     ✨ 동화 만들기
-                  </button>
+                  </div>
                 )}
 
                 {hasSavedStory && (
-                  <div className="p-4 bg-[#1d1b16] text-white rounded-xl">
+                  <div
+                    className="p-4 bg-[#1d1b16] text-white rounded-xl shadow-md hover:shadow-lg transition-transform hover:scale-105 cursor-pointer"
+                    onClick={handleGoToStory}
+                  >
                     <p className="text-pink-300 font-bold mb-2">
                       📖 {formatDisplayDate(selectedDate)}의 동화 미리보기
                     </p>
-                    <div className="text-sm whitespace-pre-wrap overflow-hidden text-ellipsis max-h-[100px]">
+                    <div className="text-sm whitespace-pre-wrap overflow-hidden text-ellipsis max-h-[100px] line-clamp-4">
                       {getStoryByDate(selectedKey) || '동화가 아직 없어요.'}
                     </div>
-                    <button
-                      onClick={handleGoToStory}
-                      className="mt-2 text-sm text-blue-300 hover:underline"
-                    >
-                      전체 보기 →
-                    </button>
+                    <p className="mt-2 text-sm text-blue-300 hover:underline">전체 보기 →</p>
                   </div>
                 )}
 
                 {!hasSavedPoem && (
-                  <button
+                  <div
                     onClick={handleGoToPoem}
-                    className="bg-purple-300 hover:bg-purple-400 text-black px-4 py-2 rounded-xl w-full font-semibold"
+                    className="cursor-pointer bg-purple-300 hover:bg-purple-400 text-black px-4 py-4 rounded-xl shadow-md transition-transform hover:scale-105"
                   >
                     🌙 시 만들기
-                  </button>
+                  </div>
                 )}
 
                 {hasSavedPoem && (
-                  <div className="p-4 bg-[#1d1b16] text-white rounded-xl">
+                  <div
+                    className="p-4 bg-[#1d1b16] text-white rounded-xl shadow-md hover:shadow-lg transition-transform hover:scale-105 cursor-pointer"
+                    onClick={handleGoToPoem}
+                  >
                     <p className="text-purple-300 font-bold mb-2">🌙 시 미리보기</p>
                     <div className="text-sm whitespace-pre-wrap overflow-hidden text-ellipsis max-h-[100px]">
                       {getPoemByDate(selectedKey) || '시는 아직 없어요.'}
                     </div>
-                    <button
-                      onClick={handleGoToPoem}
-                      className="mt-2 text-sm text-blue-300 hover:underline"
-                    >
-                      전체 보기 →
-                    </button>
+                    <p className="mt-2 text-sm text-blue-300 hover:underline">전체 보기 →</p>
                   </div>
                 )}
               </div>
@@ -225,19 +223,19 @@ export default function Home() {
               </button>
 
               <div className="space-y-3">
-                <button
+                <div
                   onClick={handleGoToStory}
-                  className="bg-pink-300 hover:bg-pink-400 text-black px-4 py-2 rounded-xl w-full font-semibold"
+                  className="cursor-pointer bg-pink-300 hover:bg-pink-400 text-black px-4 py-4 rounded-xl shadow-md transition-transform hover:scale-105"
                 >
                   ✨ 동화 만들기
-                </button>
+                </div>
 
-                <button
+                <div
                   onClick={handleGoToPoem}
-                  className="bg-purple-300 hover:bg-purple-400 text-black px-4 py-2 rounded-xl w-full font-semibold"
+                  className="cursor-pointer bg-purple-300 hover:bg-purple-400 text-black px-4 py-4 rounded-xl shadow-md transition-transform hover:scale-105"
                 >
                   🌙 시 만들기
-                </button>
+                </div>
               </div>
             </>
           )}

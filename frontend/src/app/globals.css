@@ -58,3 +58,20 @@ body {
 .react-calendar__navigation button {
   color: #333 !important;
 }
+
+/* globals.css */
+
+.saved-date {
+  background-color: #bbf7d0 !important; /* bg-green-200 */
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.saved-date:hover {
+  background-color: #86efac !important; /* bg-green-300 */
+}
+
+.react-calendar__tile--active.saved-date {
+  background-color: #4ade80 !important; /* bg-green-400 */
+  color: white !important;
+}

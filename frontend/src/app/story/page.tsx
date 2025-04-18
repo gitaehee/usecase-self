@@ -1,4 +1,5 @@
 // src/app/story/page.tsx
+
 'use client';
 
 import { useStoryStore } from '@/lib/store';
@@ -38,7 +39,8 @@ export default function StoryPage() {
   const [saved, setSaved] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
-  const alreadySaved = savedStoriesByDate[selectedKey];
+  const storyForDate = getStoryByDate(selectedKey);
+  const alreadySaved = !!storyForDate && storyForDate.trim() !== '';
   const effectiveMood = mood || defaultMood;
   const effectiveCharacter = character || defaultCharacter;
   const hasGeneratedRef = useRef(false);
@@ -56,14 +58,13 @@ export default function StoryPage() {
     if (!hydrated) return;
 
     const diaryForDate = getDiaryByDate(selectedKey);
-    const storyForDate = getStoryByDate(selectedKey);
 
     if (!shouldGenerate && storyForDate && storyForDate.trim() !== '') {
       setLocalStory(storyForDate);
       return;
     }
 
-    if (!hasGeneratedRef.current && shouldGenerate && diaryForDate && diaryForDate.trim() !== '') {
+    if (!hasGeneratedRef.current && shouldGenerate && diaryForDate?.trim()) {
       hasGeneratedRef.current = true;
       setDiary(diaryForDate);
 
@@ -88,6 +89,12 @@ export default function StoryPage() {
     }
   }, [hydrated, selectedKey, shouldGenerate]);
 
+  const handleDelete = () => {
+    setStoryByDate(selectedKey, '');
+    setLocalStory('');
+    setSaved(false);
+  };
+
   return (
     <div className="p-6 max-w-xl mx-auto text-white">
       <h1 className="text-2xl font-bold mb-6 text-rose-200">
@@ -110,11 +117,17 @@ export default function StoryPage() {
         </button>
       )}
 
-      {saved || alreadySaved ? (
-        <div className="mt-6 text-center text-sm text-green-400">
-          ✅ 동화가 저장되었습니다!
+      {(saved || alreadySaved) && localStory.trim() !== '' && (
+        <div className="mt-6 text-center">
+          <div className="text-sm text-green-400 mb-2">✅ 동화가 저장되었습니다!</div>
+          <button
+            onClick={handleDelete}
+            className="text-sm text-red-400 hover:text-red-500"
+          >
+            🗑️ 저장된 동화 삭제하기
+          </button>
         </div>
-      ) : null}
+      )}
 
       <button
         onClick={() => router.push('/')}
