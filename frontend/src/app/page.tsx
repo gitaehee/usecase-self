@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useStoryStore } from '@/lib/store';
 import dynamic from 'next/dynamic';
 import 'react-calendar/dist/Calendar.css';
+import { CalendarType } from 'react-calendar';
 
 const Calendar = dynamic(() => import('react-calendar'), { ssr: false });
 
@@ -27,6 +28,8 @@ export default function Home() {
     diary,
     story,
     poem,
+    storyHistory,
+    storyHistoryByDate,
     setDiary,
     setDiaryByDate,
     getDiaryByDate,
@@ -36,11 +39,14 @@ export default function Home() {
     setPoemByDate,
     setStory,
     setPoem,
+    addStoryToHistory,
+    clearStoryHistoryByDate,
   } = useStoryStore();
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [localDiary, setLocalDiary] = useState('');
   const [saved, setSaved] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   const selectedKey = selectedDate ? getKeyFromDate(selectedDate) : '';
   const today = new Date();
@@ -52,6 +58,7 @@ export default function Home() {
   const hasSavedStory = !!getStoryByDate(selectedKey)?.trim();
   const hasSavedPoem = !!getPoemByDate(selectedKey)?.trim();
   const shouldShowPreview = saved || hasSavedStory || hasSavedPoem;
+  const historyForDate = storyHistoryByDate[selectedKey] || [];
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -59,6 +66,7 @@ export default function Home() {
     setLocalDiary(savedDiary || '');
     setDiary(savedDiary || '');
     setSaved(!!savedDiary);
+    setShowHistory(false);
   }, [selectedKey]);
 
   const handleSave = () => {
@@ -71,6 +79,9 @@ export default function Home() {
     setDiary(cleanDiary);
     setStory('');
     setPoem('');
+    setStoryByDate(selectedKey, '');
+    setPoemByDate(selectedKey, '');
+    clearStoryHistoryByDate(selectedKey);
     setSaved(true);
   };
 
@@ -79,9 +90,10 @@ export default function Home() {
     setDiary('');
     setStory('');
     setPoem('');
+    setStoryByDate(selectedKey, '');
+    setPoemByDate(selectedKey, '');
+    clearStoryHistoryByDate(selectedKey);
     setLocalDiary('');
-    setStoryByDate(selectedKey, ''); // ✅ 동화 삭제
-    setPoemByDate(selectedKey, '');  // ✅ 시 삭제
     setSaved(false);
   };
 
@@ -108,6 +120,7 @@ export default function Home() {
       <Calendar
         onChange={(value) => setSelectedDate(value as Date)}
         value={selectedDate || new Date()}
+        calendarType={'gregory' as CalendarType} // 일요일 시작
         tileContent={({ date }) => {
           const key = getKeyFromDate(date);
           return getDiaryByDate(key) ? <span className="text-green-400">✔</span> : null;

@@ -37,8 +37,6 @@ export default function RootLayout({
             </Link>
             <div className="space-x-4 text-sm text-gray-300">
               <Link href="/" className="hover:text-white transition">일기 쓰기</Link>
-              <Link href="/story" className="hover:text-white transition">동화 보기</Link>
-              <Link href="/poem" className="hover:text-white transition">시 보기</Link>
               <Link href="/shared" className="hover:text-white transition">공유 동화</Link>
               <Link href="/mypage" className="hover:text-white transition">마이페이지</Link>
             </div>

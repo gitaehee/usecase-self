@@ -1,5 +1,4 @@
 // src/lib/store.ts
-
 'use client';
 
 import { create } from 'zustand';
@@ -20,9 +19,12 @@ interface StoryStore {
   savedPoemsByDate: { [date: string]: boolean };
 
   storyHistory: string[];
-  savedStories: string[];
   poemHistory: string[];
+  savedStories: string[];
   savedPoems: string[];
+
+  storyHistoryByDate: { [date: string]: string[] };
+  poemHistoryByDate: { [date: string]: string[] };
 
   defaultMood: string;
   defaultCharacter: string;
@@ -34,10 +36,14 @@ interface StoryStore {
   getStoryByDate: (date: string) => string | undefined;
   setStoryByDate: (date: string, text: string) => void;
   saveStoryByDate: (date: string) => void;
+  addStoryToHistory: (date: string, text: string) => void;
+  clearStoryHistoryByDate: (date: string) => void;
 
   getPoemByDate: (date: string) => string | undefined;
   setPoemByDate: (date: string, text: string) => void;
   savePoemByDate: (date: string) => void;
+  addPoemToHistory: (date: string, text: string) => void;
+  clearPoemHistoryByDate: (date: string) => void;
 
   setStory: (text: string) => void;
   setPoem: (text: string) => void;
@@ -65,9 +71,12 @@ export const useStoryStore = create<StoryStore>()(
       savedPoemsByDate: {},
 
       storyHistory: [],
-      savedStories: [],
       poemHistory: [],
+      savedStories: [],
       savedPoems: [],
+
+      storyHistoryByDate: {},
+      poemHistoryByDate: {},
 
       defaultMood: 'happy',
       defaultCharacter: '토끼',
@@ -100,6 +109,19 @@ export const useStoryStore = create<StoryStore>()(
             [date]: true,
           },
         })),
+      addStoryToHistory: (date, text) =>
+        set((state) => ({
+          storyHistoryByDate: {
+            ...state.storyHistoryByDate,
+            [date]: [...(state.storyHistoryByDate[date] || []), text],
+          },
+        })),
+      clearStoryHistoryByDate: (date) =>
+        set((state) => {
+          const newHistory = { ...state.storyHistoryByDate };
+          delete newHistory[date];
+          return { storyHistoryByDate: newHistory };
+        }),
 
       getPoemByDate: (date) => get().poemByDate?.[date] || '',
       setPoemByDate: (date, text) =>
@@ -116,13 +138,25 @@ export const useStoryStore = create<StoryStore>()(
             [date]: true,
           },
         })),
+      addPoemToHistory: (date, text) =>
+        set((state) => ({
+          poemHistoryByDate: {
+            ...state.poemHistoryByDate,
+            [date]: [...(state.poemHistoryByDate[date] || []), text],
+          },
+        })),
+      clearPoemHistoryByDate: (date) =>
+        set((state) => {
+          const newHistory = { ...state.poemHistoryByDate };
+          delete newHistory[date];
+          return { poemHistoryByDate: newHistory };
+        }),
 
       setStory: (text) =>
         set((state) => ({
           story: text,
           storyHistory: [...state.storyHistory, text],
         })),
-
       setPoem: (text) =>
         set((state) => ({
           poem: text,
@@ -133,7 +167,6 @@ export const useStoryStore = create<StoryStore>()(
         set((state) => ({
           savedStories: [...state.savedStories, state.story],
         })),
-
       savePoem: () =>
         set((state) => ({
           savedPoems: [...state.savedPoems, state.poem],
@@ -143,7 +176,6 @@ export const useStoryStore = create<StoryStore>()(
         set((state) => ({
           savedStories: state.savedStories.filter((_, i) => i !== index),
         })),
-
       deleteSavedPoem: (index) =>
         set((state) => ({
           savedPoems: state.savedPoems.filter((_, i) => i !== index),
@@ -168,6 +200,8 @@ export const useStoryStore = create<StoryStore>()(
         savedPoems: state.savedPoems,
         storyHistory: state.storyHistory,
         poemHistory: state.poemHistory,
+        storyHistoryByDate: state.storyHistoryByDate,
+        poemHistoryByDate: state.poemHistoryByDate,
         defaultMood: state.defaultMood,
         defaultCharacter: state.defaultCharacter,
       }),
