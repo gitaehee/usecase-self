@@ -1,5 +1,6 @@
 // app/mypage/page.tsx
 
+
 'use client';
 
 import { useStoryStore } from '@/lib/store';
@@ -56,9 +57,8 @@ export default function MyPage() {
       .map(([d]) => d),
     sortStory
   );
-  const storyDisplay = sortedStoryDates
-    .filter((d) => storyByDate[d]?.trim())
-    .slice(0, 5 + (storyPage - 1) * 10);
+  const storyFiltered = sortedStoryDates.filter((d) => storyByDate[d]?.trim());
+  const storyDisplay = storyFiltered.slice(0, 5 + (storyPage - 1) * 10);
 
   const sortedPoemDates = sortDates(
     Object.entries(savedPoemsByDate)
@@ -66,9 +66,8 @@ export default function MyPage() {
       .map(([d]) => d),
     sortPoem
   );
-  const poemDisplay = sortedPoemDates
-    .filter((d) => poemByDate[d]?.trim())
-    .slice(0, 5 + (poemPage - 1) * 10);
+  const poemFiltered = sortedPoemDates.filter((d) => poemByDate[d]?.trim());
+  const poemDisplay = poemFiltered.slice(0, 5 + (poemPage - 1) * 10);
 
   return (
     <div className="p-6 max-w-xl mx-auto text-white">
@@ -175,7 +174,7 @@ export default function MyPage() {
           ))
         )}
       </ul>
-      {sortedStoryDates.filter((d) => storyByDate[d]?.trim()).length > 5 && storyDisplay.length < sortedStoryDates.length && (
+      {storyDisplay.length < storyFiltered.length && (
         <button onClick={() => setStoryPage((p) => p + 1)} className="text-yellow-300 hover:underline">
           더보기 +10개
         </button>
@@ -230,7 +229,7 @@ export default function MyPage() {
           ))
         )}
       </ul>
-      {sortedPoemDates.filter((d) => poemByDate[d]?.trim()).length > 5 && poemDisplay.length < sortedPoemDates.length && (
+      {poemDisplay.length < poemFiltered.length && (
         <button onClick={() => setPoemPage((p) => p + 1)} className="text-purple-300 hover:underline">
           더보기 +10개
         </button>
