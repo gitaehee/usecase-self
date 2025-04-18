@@ -15,6 +15,7 @@ export default function MyPage() {
     savedStoriesByDate,
     poemByDate,
     savedPoemsByDate,
+    getDiaryByDate,
   } = useStoryStore();
 
   // 페이지, 모달, 입력 상태
@@ -49,12 +50,18 @@ export default function MyPage() {
   };
 
   // 스토리 날짜
-  const allStoryDates = Object.entries(savedStoriesByDate).filter(([_,s])=>s).map(([d])=>d);
+  const allStoryDates = Object.entries(savedStoriesByDate)
+    .filter(([_,s])=>s)
+    .map(([d])=>d)
+    .filter((d)=>getDiaryByDate(d)); // ✅ 일기 있는 날짜만
   const sortedStoryDates = sortDates(allStoryDates, sortStory);
   const storyDisplay = sortedStoryDates.slice(0, storyPage*10);
 
   // 시 날짜
-  const allPoemDates = Object.entries(savedPoemsByDate).filter(([_,s])=>s).map(([d])=>d);
+  const allPoemDates = Object.entries(savedPoemsByDate)
+    .filter(([_,s])=>s)
+    .map(([d])=>d)
+    .filter((d)=>getDiaryByDate(d)); // ✅ 일기 있는 날짜만
   const sortedPoemDates = sortDates(allPoemDates, sortPoem);
   const poemDisplay = sortedPoemDates.slice(0, poemPage*10);
 
