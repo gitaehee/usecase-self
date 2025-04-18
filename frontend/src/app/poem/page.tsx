@@ -1,6 +1,7 @@
 // app/poem/page.tsx
 
 
+
 'use client';
 
 import { useStoryStore } from '@/lib/store';
@@ -51,6 +52,7 @@ export default function PoemPage() {
   const [loading, setLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   const hasGeneratedRef = useRef(false);
 
@@ -63,14 +65,17 @@ export default function PoemPage() {
 
     const diaryForDate = getDiaryByDate(selectedKey);
 
-    if (!shouldGenerate && poemForDate && poemForDate.trim() !== '') {
-      setLocalPoem(poemForDate);
-      setIsSaved(alreadySaved);
+    if (!shouldGenerate || hasGenerated || hasGeneratedRef.current) {
+      if (poemForDate && poemForDate.trim() !== '') {
+        setLocalPoem(poemForDate);
+        setIsSaved(alreadySaved);
+      }
       return;
     }
 
-    if (!hasGeneratedRef.current && shouldGenerate && diaryForDate?.trim()) {
+    if (shouldGenerate && diaryForDate?.trim()) {
       hasGeneratedRef.current = true;
+      setHasGenerated(true);
       setLoading(true);
       setIsSaved(false);
 
@@ -93,7 +98,7 @@ export default function PoemPage() {
 
       generate();
     }
-  }, [hydrated, selectedKey, shouldGenerate]);
+  }, [hydrated, selectedKey, shouldGenerate, hasGenerated]);
 
   const toggleSave = () => {
     if (isSaved) {

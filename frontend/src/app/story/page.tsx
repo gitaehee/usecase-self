@@ -1,5 +1,6 @@
 // src/app/story/page.tsx
 
+
 'use client';
 
 import { useStoryStore } from '@/lib/store';
@@ -50,6 +51,7 @@ export default function StoryPage() {
   const [loading, setLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   const hasGeneratedRef = useRef(false);
 
@@ -62,14 +64,17 @@ export default function StoryPage() {
 
     const diaryForDate = getDiaryByDate(selectedKey);
 
-    if (!shouldGenerate && storyForDate && storyForDate.trim() !== '') {
-      setLocalStory(storyForDate);
-      setIsSaved(alreadySaved);
+    if (!shouldGenerate || hasGenerated || hasGeneratedRef.current) {
+      if (storyForDate && storyForDate.trim() !== '') {
+        setLocalStory(storyForDate);
+        setIsSaved(alreadySaved);
+      }
       return;
     }
 
-    if (!hasGeneratedRef.current && shouldGenerate && diaryForDate?.trim()) {
+    if (shouldGenerate && diaryForDate?.trim()) {
       hasGeneratedRef.current = true;
+      setHasGenerated(true);
       setLoading(true);
       setIsSaved(false);
 
@@ -92,7 +97,7 @@ export default function StoryPage() {
 
       generate();
     }
-  }, [hydrated, selectedKey, shouldGenerate]);
+  }, [hydrated, selectedKey, shouldGenerate, hasGenerated]);
 
   const toggleSave = () => {
     if (isSaved) {
