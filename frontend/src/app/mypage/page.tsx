@@ -50,19 +50,25 @@ export default function MyPage() {
     return dates;
   };
 
-  const allStoryDates = Object.entries(savedStoriesByDate)
-    .filter(([_, s]) => s)
-    .map(([d]) => d)
-    .filter((d) => getDiaryByDate(d));
-  const sortedStoryDates = sortDates(allStoryDates, sortStory);
-  const storyDisplay = sortedStoryDates.slice(0, storyPage * 10);
+  const sortedStoryDates = sortDates(
+    Object.entries(savedStoriesByDate)
+      .filter(([_, s]) => s)
+      .map(([d]) => d),
+    sortStory
+  );
+  const storyDisplay = sortedStoryDates
+    .filter((d) => storyByDate[d]?.trim())
+    .slice(0, 5 + (storyPage - 1) * 10);
 
-  const allPoemDates = Object.entries(savedPoemsByDate)
-    .filter(([_, s]) => s)
-    .map(([d]) => d)
-    .filter((d) => getDiaryByDate(d));
-  const sortedPoemDates = sortDates(allPoemDates, sortPoem);
-  const poemDisplay = sortedPoemDates.slice(0, poemPage * 10);
+  const sortedPoemDates = sortDates(
+    Object.entries(savedPoemsByDate)
+      .filter(([_, s]) => s)
+      .map(([d]) => d),
+    sortPoem
+  );
+  const poemDisplay = sortedPoemDates
+    .filter((d) => poemByDate[d]?.trim())
+    .slice(0, 5 + (poemPage - 1) * 10);
 
   return (
     <div className="p-6 max-w-xl mx-auto text-white">
@@ -139,39 +145,37 @@ export default function MyPage() {
         {storyDisplay.length === 0 ? (
           <p className="text-gray-400">저장된 동화가 아직 없어요.</p>
         ) : (
-          storyDisplay
-            .filter((date) => storyByDate[date]?.trim()) // 🔥 빈 값 필터
-            .map((date) => (
-              <li
-                key={date}
-                className="bg-[#2a281f] text-sm text-yellow-100 p-4 rounded-xl border border-[#5a554a] cursor-pointer"
-                onClick={() => {
-                  setOpenText(storyByDate[date] || '');
-                  setShowModal(true);
-                }}
-              >
-                <div className="flex justify-between items-start gap-2">
-                  <div className="w-full">
-                    <p className="font-medium mb-1">{date}</p>
-                    <p className="break-words whitespace-pre-wrap line-clamp-3 overflow-hidden text-ellipsis">
-                      {storyByDate[date]}
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setStoryByDate(date, '');
-                    }}
-                    className="text-red-400 hover:text-red-500 text-sm"
-                  >
-                    🗑️
-                  </button>
+          storyDisplay.map((date) => (
+            <li
+              key={date}
+              className="bg-[#2a281f] text-sm text-yellow-100 p-4 rounded-xl border border-[#5a554a] cursor-pointer"
+              onClick={() => {
+                setOpenText(storyByDate[date] || '');
+                setShowModal(true);
+              }}
+            >
+              <div className="flex justify-between items-start gap-2">
+                <div className="w-full">
+                  <p className="font-medium mb-1">{date}</p>
+                  <p className="break-words whitespace-pre-wrap line-clamp-3 overflow-hidden text-ellipsis">
+                    {storyByDate[date]}
+                  </p>
                 </div>
-              </li>
-            ))
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStoryByDate(date, '');
+                  }}
+                  className="text-red-400 hover:text-red-500 text-sm"
+                >
+                  🗑️
+                </button>
+              </div>
+            </li>
+          ))
         )}
       </ul>
-      {storyDisplay.length < sortedStoryDates.length && (
+      {sortedStoryDates.filter((d) => storyByDate[d]?.trim()).length > 5 && storyDisplay.length < sortedStoryDates.length && (
         <button onClick={() => setStoryPage((p) => p + 1)} className="text-yellow-300 hover:underline">
           더보기 +10개
         </button>
@@ -196,39 +200,37 @@ export default function MyPage() {
         {poemDisplay.length === 0 ? (
           <p className="text-gray-400">저장된 시가 아직 없어요.</p>
         ) : (
-          poemDisplay
-            .filter((date) => poemByDate[date]?.trim()) // 🔥 빈 값 필터
-            .map((date) => (
-              <li
-                key={date}
-                className="bg-[#2a281f] text-sm text-purple-100 p-4 rounded-xl border border-[#5a554a] cursor-pointer"
-                onClick={() => {
-                  setOpenText(poemByDate[date] || '');
-                  setShowModal(true);
-                }}
-              >
-                <div className="flex justify-between items-start gap-2">
-                  <div className="w-full">
-                    <p className="font-medium mb-1">{date}</p>
-                    <p className="break-words whitespace-pre-wrap line-clamp-3 overflow-hidden text-ellipsis">
-                      {poemByDate[date]}
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPoemByDate(date, '');
-                    }}
-                    className="text-red-400 hover:text-red-500 text-sm"
-                  >
-                    🗑️
-                  </button>
+          poemDisplay.map((date) => (
+            <li
+              key={date}
+              className="bg-[#2a281f] text-sm text-purple-100 p-4 rounded-xl border border-[#5a554a] cursor-pointer"
+              onClick={() => {
+                setOpenText(poemByDate[date] || '');
+                setShowModal(true);
+              }}
+            >
+              <div className="flex justify-between items-start gap-2">
+                <div className="w-full">
+                  <p className="font-medium mb-1">{date}</p>
+                  <p className="break-words whitespace-pre-wrap line-clamp-3 overflow-hidden text-ellipsis">
+                    {poemByDate[date]}
+                  </p>
                 </div>
-              </li>
-            ))
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPoemByDate(date, '');
+                  }}
+                  className="text-red-400 hover:text-red-500 text-sm"
+                >
+                  🗑️
+                </button>
+              </div>
+            </li>
+          ))
         )}
       </ul>
-      {poemDisplay.length < sortedPoemDates.length && (
+      {sortedPoemDates.filter((d) => poemByDate[d]?.trim()).length > 5 && poemDisplay.length < sortedPoemDates.length && (
         <button onClick={() => setPoemPage((p) => p + 1)} className="text-purple-300 hover:underline">
           더보기 +10개
         </button>
