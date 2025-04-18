@@ -6,6 +6,9 @@ from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 import os
 
+
+
+
 # ✅ .env에서 API 키 가져오기
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
@@ -31,6 +34,8 @@ class StoryRequest(BaseModel):
     mood: str
     character: str
     format: str = "story"
+
+print("🔥 현재 API 키:", os.getenv("OPENAI_API_KEY"))
 
 @app.post("/generate-story")
 def generate_story(data: StoryRequest):
@@ -71,15 +76,15 @@ def generate_story(data: StoryRequest):
     generate_task = Task(
         description=(
             # 금지사항을 먼저 쓰기
-            "※ 폭력적이거나 잔인한 묘사는 사용하지 말고, 부드럽고 따뜻한 어조를 유지해주세요.\n"
-            "※ 일기 내용에 잔인하거나 성적인 묘사가 있다면, 최대한 추상적으로 바꾸거나 생략해주세요.\n\n"
+            "※ 폭력적이거나 잔인한 묘사는 사용하지 말고, 부드럽고 따뜻한 어조를 유지해.\n"
+            "※ 일기 내용에 잔인하거나 성적인 묘사가 있다면, 최대한 추상적으로 바꾸거나 생략해.\n\n"
+            "머리말과 꼬리말 없이 본문만 출력하고, 영어 표현은 사용하지 마."
             # 2) 감정 요약과 동화 지시
-            f"아래 감정과 사건 요약을 참고해, '{data.character}'라는 캐릭터가 주인공인 짧은 동화를 작성해주세요.\n"
+            f"아래 감정과 사건 요약을 참고해, '{data.character}'라는 캐릭터가 주인공인 짧은 동화를 작성해.\n"
             f"{emotion_summary}\n\n"
             # 3) 스타일 지시
-            "감성적이고 따뜻한 분위기로, 자연스러운 한국어로 작성해주세요.\n"
-            "**머리말과 꼬리말 없이 본문만 출력하고, 영어 표현은 사용하지 마세요.**"
-            "너무 길지 않게 써주세요."
+            "감성적이고 따뜻한 분위기로, 자연스러운 한국어로 작성해.\n"
+            "너무 길지 않게 써줘."
         ),
         agent=generator
     )

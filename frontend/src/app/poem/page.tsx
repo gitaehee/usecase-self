@@ -1,10 +1,13 @@
 // app/poem/page.tsx
+
+
 'use client';
 
 import { useStoryStore } from '@/lib/store';
 import { generatePoem } from '@/lib/api';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Bookmark, BookmarkCheck } from 'lucide-react';
 
 const getKSTDateKey = () => {
   const date = new Date();
@@ -13,19 +16,23 @@ const getKSTDateKey = () => {
   return kstDate.toISOString().split('T')[0];
 };
 
+const formatDateTitle = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+};
+
 export default function PoemPage() {
   const {
     mood,
     character,
     defaultMood,
     defaultCharacter,
-    setDiary,
     getDiaryByDate,
     getPoemByDate,
     setPoemByDate,
     savePoemByDate,
+    deleteSavedPoemByDate,
     savedPoemsByDate,
-    setPoem,
   } = useStoryStore();
 
   const searchParams = useSearchParams();
@@ -34,22 +41,18 @@ export default function PoemPage() {
   const dateParam = searchParams.get('date');
   const selectedKey = dateParam || getKSTDateKey();
 
-  const [localPoem, setLocalPoem] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
-
-  // 🧠 정확한 저장 여부 판단
   const poemForDate = getPoemByDate(selectedKey);
-  const alreadySaved = !!poemForDate && poemForDate.trim() !== '';
+  const alreadySaved = savedPoemsByDate[selectedKey] || false;
+
   const effectiveMood = mood || defaultMood;
   const effectiveCharacter = character || defaultCharacter;
-  const hasGeneratedRef = useRef(false);
 
-  const formatDateTitle = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return `${date.getMonth() + 1}월 ${date.getDate()}일`;
-  };
+  const [localPoem, setLocalPoem] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  const hasGeneratedRef = useRef(false);
 
   useEffect(() => {
     setHydrated(true);
@@ -60,19 +63,18 @@ export default function PoemPage() {
 
     const diaryForDate = getDiaryByDate(selectedKey);
 
-    // 저장된 시 불러오기
     if (!shouldGenerate && poemForDate && poemForDate.trim() !== '') {
       setLocalPoem(poemForDate);
+      setIsSaved(alreadySaved);
       return;
     }
 
-    // 새로 생성
     if (!hasGeneratedRef.current && shouldGenerate && diaryForDate?.trim()) {
       hasGeneratedRef.current = true;
-      setDiary(diaryForDate);
+      setLoading(true);
+      setIsSaved(false);
 
       const generate = async () => {
-        setLoading(true);
         try {
           const text = await generatePoem({
             diary: diaryForDate,
@@ -80,10 +82,10 @@ export default function PoemPage() {
             character: effectiveCharacter,
           });
           setPoemByDate(selectedKey, text);
-          setPoem(text);
           setLocalPoem(text);
-        } catch {
-          setLocalPoem('시를 만드는 데 실패했어요.');
+        } catch (error) {
+          console.error('시 생성 오류:', error);
+          setLocalPoem('시 생성에 실패했어요.');
         } finally {
           setLoading(false);
         }
@@ -93,43 +95,45 @@ export default function PoemPage() {
     }
   }, [hydrated, selectedKey, shouldGenerate]);
 
-  const handleDelete = () => {
-    setPoemByDate(selectedKey, ''); // zustand에 빈 값 저장
-    setLocalPoem('');
-    setSaved(false);
+  const toggleSave = () => {
+    if (isSaved) {
+      deleteSavedPoemByDate(selectedKey);
+      setIsSaved(false);
+    } else {
+      savePoemByDate(selectedKey);
+      setIsSaved(true);
+    }
   };
 
   return (
     <div className="p-6 max-w-xl mx-auto text-white">
-      <h1 className="text-2xl font-bold mb-6 text-pink-200">
+      <h1 className="text-2xl font-bold mb-4 text-pink-100">
         🌙 {formatDateTitle(selectedKey)}의 시
       </h1>
 
-      <div className="whitespace-pre-wrap bg-[#1d1b16] p-6 rounded-2xl border border-[#3f3c36] shadow-inner text-lg leading-relaxed font-serif min-h-[200px]">
-        {loading ? '시를 만드는 중...' : localPoem || '일기를 먼저 작성해주세요.'}
-      </div>
+      <button
+        onClick={() => {
+          router.push(`/poem?generate=true&date=${selectedKey}`);
+        }}
+        disabled={loading}
+        className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-xl mb-6"
+      >
+        {loading ? '생성 중...' : localPoem ? '다른 시 생성하기' : '시 생성하기'}
+      </button>
 
-      {localPoem && !alreadySaved && (
-        <button
-          onClick={() => {
-            savePoemByDate(selectedKey);
-            setSaved(true);
-          }}
-          className="mt-6 w-full px-4 py-2 rounded-xl font-semibold bg-yellow-300 hover:bg-yellow-400 text-black"
-        >
-          💖 이 시 저장하기
-        </button>
-      )}
-
-      {(saved || alreadySaved) && localPoem.trim() !== '' && (
-        <div className="mt-4 text-center">
-          <div className="text-green-400 text-sm mb-2">✅ 시가 저장되었습니다!</div>
+      {localPoem && (
+        <div className="relative bg-[#1d1b16] text-lg whitespace-pre-wrap p-6 rounded-2xl mb-4 leading-relaxed">
           <button
-            onClick={handleDelete}
-            className="text-sm text-red-400 hover:text-red-500"
+            onClick={toggleSave}
+            className="absolute top-4 right-4"
           >
-            🗑️ 저장된 시 삭제하기
+            {isSaved ? (
+              <BookmarkCheck className="w-6 h-6 text-yellow-400" />
+            ) : (
+              <Bookmark className="w-6 h-6 text-white opacity-30 hover:opacity-80" />
+            )}
           </button>
+          {localPoem}
         </div>
       )}
 
