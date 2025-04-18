@@ -86,7 +86,9 @@ export default function StoryPage() {
             character: effectiveCharacter,
           });
           setStoryByDate(selectedKey, text);
+          deleteSavedStoryByDate(selectedKey); // 새로 만들면 저장상태 초기화
           setLocalStory(text);
+          setIsSaved(false);
         } catch (error) {
           console.error('동화 생성 오류:', error);
           setLocalStory('동화 생성에 실패했어요.');

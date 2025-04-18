@@ -87,7 +87,9 @@ export default function PoemPage() {
             character: effectiveCharacter,
           });
           setPoemByDate(selectedKey, text);
+          deleteSavedPoemByDate(selectedKey);
           setLocalPoem(text);
+          setIsSaved(false);
         } catch (error) {
           console.error('시 생성 오류:', error);
           setLocalPoem('시 생성에 실패했어요.');
