@@ -48,8 +48,10 @@ export default function MyPage() {
   const sortDates = (dates: string[], order: 'saved' | 'oldest' | 'newest') => {
     if (order === 'oldest') return [...dates].sort((a, b) => a.localeCompare(b));
     if (order === 'newest') return [...dates].sort((a, b) => b.localeCompare(a));
-    return dates;
+    // 저장순일 경우 역순으로 표시 (최근에 저장한 게 위로)
+    return [...dates].reverse();
   };
+  
 
   const sortedStoryDates = sortDates(
     Object.entries(savedStoriesByDate)
