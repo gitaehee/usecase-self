@@ -53,8 +53,6 @@ export default function StoryPage() {
   const [hydrated, setHydrated] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  const hasGeneratedRef = useRef(false);
-
   useEffect(() => {
     setHydrated(true);
   }, []);
@@ -63,8 +61,9 @@ export default function StoryPage() {
     if (!hydrated) return;
 
     const diaryForDate = getDiaryByDate(selectedKey);
+    const storyAlreadyGenerated = sessionStorage.getItem(`generated-story-${selectedKey}`) === 'true';
 
-    if (!shouldGenerate || hasGenerated || hasGeneratedRef.current) {
+    if (!shouldGenerate || hasGenerated || storyAlreadyGenerated) {
       if (storyForDate && storyForDate.trim() !== '') {
         setLocalStory(storyForDate);
         setIsSaved(alreadySaved);
@@ -73,8 +72,8 @@ export default function StoryPage() {
     }
 
     if (shouldGenerate && diaryForDate?.trim()) {
-      hasGeneratedRef.current = true;
       setHasGenerated(true);
+      sessionStorage.setItem(`generated-story-${selectedKey}`, 'true');
       setLoading(true);
       setIsSaved(false);
 
@@ -86,7 +85,7 @@ export default function StoryPage() {
             character: effectiveCharacter,
           });
           setStoryByDate(selectedKey, text);
-          deleteSavedStoryByDate(selectedKey); // 새로 만들면 저장상태 초기화
+          deleteSavedStoryByDate(selectedKey);
           setLocalStory(text);
           setIsSaved(false);
         } catch (error) {
@@ -129,10 +128,7 @@ export default function StoryPage() {
 
       {localStory && (
         <div className="relative bg-[#1d1b16] text-lg whitespace-pre-wrap p-6 rounded-2xl mb-4 leading-relaxed">
-          <button
-            onClick={toggleSave}
-            className="absolute top-4 right-4"
-          >
+          <button onClick={toggleSave} className="absolute top-4 right-4">
             {isSaved ? (
               <BookmarkCheck className="w-6 h-6 text-yellow-400" />
             ) : (

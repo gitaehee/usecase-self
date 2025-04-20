@@ -1,7 +1,6 @@
 // app/poem/page.tsx
 
 
-
 'use client';
 
 import { useStoryStore } from '@/lib/store';
@@ -54,8 +53,6 @@ export default function PoemPage() {
   const [hydrated, setHydrated] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  const hasGeneratedRef = useRef(false);
-
   useEffect(() => {
     setHydrated(true);
   }, []);
@@ -64,8 +61,9 @@ export default function PoemPage() {
     if (!hydrated) return;
 
     const diaryForDate = getDiaryByDate(selectedKey);
+    const poemAlreadyGenerated = sessionStorage.getItem(`generated-poem-${selectedKey}`) === 'true';
 
-    if (!shouldGenerate || hasGenerated || hasGeneratedRef.current) {
+    if (!shouldGenerate || hasGenerated || poemAlreadyGenerated) {
       if (poemForDate && poemForDate.trim() !== '') {
         setLocalPoem(poemForDate);
         setIsSaved(alreadySaved);
@@ -74,8 +72,8 @@ export default function PoemPage() {
     }
 
     if (shouldGenerate && diaryForDate?.trim()) {
-      hasGeneratedRef.current = true;
       setHasGenerated(true);
+      sessionStorage.setItem(`generated-poem-${selectedKey}`, 'true');
       setLoading(true);
       setIsSaved(false);
 
@@ -130,10 +128,7 @@ export default function PoemPage() {
 
       {localPoem && (
         <div className="relative bg-[#1d1b16] text-lg whitespace-pre-wrap p-6 rounded-2xl mb-4 leading-relaxed">
-          <button
-            onClick={toggleSave}
-            className="absolute top-4 right-4"
-          >
+          <button onClick={toggleSave} className="absolute top-4 right-4">
             {isSaved ? (
               <BookmarkCheck className="w-6 h-6 text-yellow-400" />
             ) : (
