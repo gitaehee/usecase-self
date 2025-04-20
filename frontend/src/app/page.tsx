@@ -1,5 +1,7 @@
 // src/app/page.tsx
 
+
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -108,14 +110,31 @@ export default function Home() {
 
   return (
     <div className="p-6 max-w-xl mx-auto">
+      <style jsx global>{`
+        .faded-date {
+          color: #bbb !important;
+        }
+      `}</style>
+
       <div className="w-fit mx-auto scale-[1.2] md:scale-[1.25] mb-6">
         <Calendar
           onChange={(value) => setSelectedDate(value as Date)}
           value={selectedDate || new Date()}
           calendarType={'gregory' as CalendarType}
-          tileClassName={({ date }) => {
+          tileClassName={({ date, view, activeStartDate }) => {
             const key = getKeyFromDate(date);
-            return getDiaryByDate(key) ? 'saved-date' : undefined;
+            const classes = [];
+
+            if (getDiaryByDate(key)) {
+              classes.push('saved-date');
+            }
+
+            // 흐리게 처리할 날짜
+            if (date.getMonth() !== activeStartDate.getMonth()) {
+              classes.push('faded-date');
+            }
+
+            return classes.join(' ');
           }}
         />
       </div>
@@ -168,7 +187,6 @@ export default function Home() {
 
               {saved && (
                 <div className="flex flex-col md:flex-row gap-4 mt-6">
-                  {/* 동화 */}
                   <div
                     onClick={handleGoToStory}
                     className={`w-full md:w-1/2 cursor-pointer rounded-xl shadow-md transition-transform hover:scale-105 ${
@@ -178,9 +196,7 @@ export default function Home() {
                   >
                     {hasSavedStory ? (
                       <div className="p-4 h-full flex flex-col justify-between">
-                        <p className="text-pink-300 font-bold mb-2">
-                          📖 동화 미리보기
-                        </p>
+                        <p className="text-pink-300 font-bold mb-2">📖 동화 미리보기</p>
                         <div className="text-sm whitespace-pre-wrap overflow-hidden line-clamp-4">
                           {getStoryByDate(selectedKey)}
                         </div>
@@ -194,7 +210,6 @@ export default function Home() {
                     )}
                   </div>
 
-                  {/* 시 */}
                   <div
                     onClick={handleGoToPoem}
                     className={`w-full md:w-1/2 cursor-pointer rounded-xl shadow-md transition-transform hover:scale-105 ${
